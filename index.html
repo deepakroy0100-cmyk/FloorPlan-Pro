@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>2D HOUSE DRAWING</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo">
+                <span class="material-icons logo-icon">architecture</span>
+                <h1>FloorPlan <span>Pro</span></h1>
+            </div>
+            <div class="header-right">
+                <div id="status-bar">
+                    <span id="coord-display">X: 0  Y: 0</span>
+                    <span id="tool-display">Tool: Wall</span>
+                    <span id="selection-info"></span>
+                </div>
+                <button class="material-icons icon-btn" id="menu" title="Menu">menu</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MENU -->
+    <div class="popup" id="menu-dropdown">
+        <button class="material-icons close-btn" id="close-menu">close</button>
+        <h2>Menu</h2>
+        <div id="toolbar">
+            <button class="material-icons toolbar-btn" id="saveBtn" title="Save PNG">save</button>
+            <button class="material-icons toolbar-btn" id="zoomIn" title="Zoom In">zoom_in</button>
+            <button class="material-icons toolbar-btn" id="zoomOut" title="Zoom Out">zoom_out</button>
+            <button class="material-icons toolbar-btn" id="undoBtn" title="Undo">undo</button>
+            <button class="material-icons toolbar-btn" id="redoBtn" title="Redo">redo</button>
+            <button class="material-icons toolbar-btn" id="clearBtn" title="Clear All">delete_sweep</button>
+        </div>
+    </div>
+
+    <!-- DRAWING AREA -->
+    <div id="drawing-area">
+        <canvas id="drawing-canvas"></canvas>
+        <div id="selection-tooltip" style="display:none;position:fixed;background:#1a1a2e;color:#fff;padding:5px 10px;border-radius:6px;font-size:12px;pointer-events:none;z-index:500;"></div>
+        <div id="drag-hint" style="display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#f59e0b;color:#fff;border-radius:20px;padding:6px 16px;font-size:12px;z-index:500;pointer-events:none;align-items:center;gap:6px;">
+            <span class="material-icons" style="font-size:16px;">open_with</span> Drag to move
+        </div>
+    </div>
+
+    <!-- SELECTION TOOLBAR -->
+    <div id="selection-toolbar" style="display:none;position:fixed;bottom:72px;left:50%;transform:translateX(-50%);background:var(--panel);border-radius:18px;box-shadow:0 6px 32px rgba(0,0,0,0.22);z-index:400;padding:10px 14px;flex-direction:column;align-items:center;gap:8px;min-width:200px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;width:100%;">
+            <div id="sel-type-badge" style="font-family:var(--font-heading);font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--primary);background:#dbeafe;border-radius:20px;padding:3px 12px;"></div>
+            <button id="selCloseBtn" style="background:var(--accent);border:none;border-radius:50%;width:28px;height:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text);"><span class="material-icons" style="font-size:18px;">close</span></button>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+            <div style="display:flex;gap:2px;">
+                <button class="sel-arrow-btn" id="moveUp"><span class="material-icons">keyboard_arrow_up</span></button>
+            </div>
+            <div style="display:flex;gap:2px;">
+                <button class="sel-arrow-btn" id="moveLeft"><span class="material-icons">keyboard_arrow_left</span></button>
+                <button class="sel-arrow-btn" style="background:#fef3c7;color:#d97706;cursor:default;"><span class="material-icons">radio_button_checked</span></button>
+                <button class="sel-arrow-btn" id="moveRight"><span class="material-icons">keyboard_arrow_right</span></button>
+            </div>
+            <div style="display:flex;gap:2px;">
+                <button class="sel-arrow-btn" id="moveDown"><span class="material-icons">keyboard_arrow_down</span></button>
+            </div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;border-top:1px solid var(--accent);padding-top:8px;width:100%;">
+            <button class="sel-action-btn" id="rotateBtn" style="display:none;"><span class="material-icons">rotate_right</span><span>Rotate</span></button>
+            <button class="sel-action-btn" id="flipBtn" style="display:none;"><span class="material-icons">flip</span><span>Flip</span></button>
+            <button class="sel-action-btn" id="sizeDownBtn" style="display:none;"><span class="material-icons">remove</span><span>Smaller</span></button>
+            <button class="sel-action-btn" id="sizeUpBtn" style="display:none;"><span class="material-icons">add</span><span>Bigger</span></button>
+            <button class="sel-action-btn danger" id="deleteSelBtn"><span class="material-icons">delete</span><span>Delete</span></button>
+        </div>
+        <button id="doneSelBtn" style="width:100%;padding:10px;background:var(--primary);color:white;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+            <span class="material-icons" style="font-size:18px;">check_circle</span> Done
+        </button>
+    </div>
+
+    <!-- BOTTOM BAR -->
+    <div id="bottom-bar">
+        <button class="nav-btn active" data-panel="home"><span class="material-icons">home</span><span>Home</span></button>
+        <button class="nav-btn" data-panel="add"><span class="material-icons">add_circle</span><span>Add</span></button>
+        <button class="nav-btn" data-panel="furniture"><span class="material-icons">chair</span><span>Furniture</span></button>
+        <button class="nav-btn" data-panel="design"><span class="material-icons">palette</span><span>Design</span></button>
+        <button class="nav-btn" data-panel="settings"><span class="material-icons">settings</span><span>Settings</span></button>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="popup" id="settings-dropdown">
+        <button class="material-icons close-btn" id="close-settings">close</button>
+        <h2><span class="material-icons">settings</span> Settings</h2>
+        <div class="dark-mode-toggle">
+            <label class="switch"><input type="checkbox" id="darkModeToggle"><span class="slider round"></span></label>
+            <span>Dark Mode</span>
+        </div>
+        <div class="setting-item"><label><span class="material-icons">grid_on</span> Show Grid</label><input type="checkbox" id="gridToggle" checked></div>
+        <div class="setting-item"><label><span class="material-icons">grid_4x4</span> Snap to Grid</label><input type="checkbox" id="snapToggle" checked></div>
+        <div class="setting-item"><label><span class="material-icons">line_weight</span> Wall Thickness</label><input type="number" id="wallThickness" value="5" min="2" max="30"></div>
+        <div class="setting-item"><label>Canvas Width</label><input type="number" id="canvasWidth" value="1200"></div>
+        <div class="setting-item"><label>Canvas Height</label><input type="number" id="canvasHeight" value="900"></div>
+        <button id="applySettings" class="apply-btn">Apply Settings</button>
+    </div>
+
+    <!-- ADD TOOLS -->
+    <div class="popup" id="add-dropdown">
+        <button class="material-icons close-btn" id="close-add">close</button>
+        <h2><span class="material-icons">add_circle</span> Drawing Tools</h2>
+        <div class="tools-grid">
+            <button id="selectTool" class="tool-btn"><span class="material-icons">near_me</span><span>Select</span></button>
+            <button id="pencilTool" class="tool-btn active"><span class="material-icons">edit</span><span>Wall</span></button>
+            <button id="rectangleTool" class="tool-btn"><span class="material-icons">crop_square</span><span>Room</span></button>
+            <button id="doorTool" class="tool-btn"><span class="material-icons">door_front</span><span>Door</span></button>
+            <button id="doubleDoorTool" class="tool-btn"><span class="material-icons">meeting_room</span><span>Dbl Door</span></button>
+            <button id="windowTool" class="tool-btn"><span class="material-icons">window</span><span>Window</span></button>
+            <button id="stairsTool" class="tool-btn"><span class="material-icons">stairs</span><span>Stairs</span></button>
+            <button id="eraserTool" class="tool-btn"><span class="material-icons">auto_fix_normal</span><span>Erase</span></button>
+            <button id="textTool" class="tool-btn"><span class="material-icons">text_fields</span><span>Label</span></button>
+        </div>
+        <div class="tool-tip-box">
+            <span class="material-icons">info</span>
+            <span id="tool-tip-text">Select a tool. Door/Window: click on a wall.</span>
+        </div>
+    </div>
+
+    <!-- DESIGN / COLORS -->
+    <div class="popup" id="design-dropdown">
+        <button class="material-icons close-btn" id="close-design">close</button>
+        <h2><span class="material-icons">palette</span> Design</h2>
+        <div class="color-picker"><label>Room Fill</label><input type="color" id="roomColor" value="#f4e5cd"></div>
+        <div class="color-picker"><label>Wall Color</label><input type="color" id="wallColor" value="#1a1a2e"></div>
+        <div class="color-picker"><label>Stairs Color</label><input type="color" id="stairsColor" value="#8B6914"></div>
+        <div class="color-picker"><label>Door Color</label><input type="color" id="doorColor" value="#1a1a2e"></div>
+        <div class="color-picker"><label>Window Color</label><input type="color" id="windowColorPicker" value="#1a1a2e"></div>
+        <button id="applyDesign" class="apply-btn">Apply Design</button>
+    </div>
+
+    <!-- FURNITURE PANEL -->
+    <div class="popup" id="furniture-dropdown">
+        <button class="material-icons close-btn" id="close-furniture">close</button>
+        <h2><span class="material-icons">chair</span> Furniture &amp; Appliances</h2>
+
+        <div class="furn-section-title">Seating &amp; Tables</div>
+        <div class="tools-grid">
+            <button class="tool-btn furn-btn" data-furn="sofa-single"><span class="furn-icon">🛋️</span><span>Sofa</span></button>
+            <button class="tool-btn furn-btn" data-furn="sofa-double"><span class="furn-icon">🛋️</span><span>Sofa 3S</span></button>
+            <button class="tool-btn furn-btn" data-furn="chair"><span class="furn-icon">🪑</span><span>Chair</span></button>
+            <button class="tool-btn furn-btn" data-furn="armchair"><span class="furn-icon">🪑</span><span>Armchair</span></button>
+            <button class="tool-btn furn-btn" data-furn="table-round"><span class="furn-icon">⭕</span><span>Rnd Table</span></button>
+            <button class="tool-btn furn-btn" data-furn="table-rect"><span class="furn-icon">▭</span><span>Rect Table</span></button>
+            <button class="tool-btn furn-btn" data-furn="dining-set"><span class="furn-icon">🍽️</span><span>Dining Set</span></button>
+            <button class="tool-btn furn-btn" data-furn="desk"><span class="furn-icon">📋</span><span>Desk</span></button>
+        </div>
+
+        <div class="furn-section-title">Bedroom</div>
+        <div class="tools-grid">
+            <button class="tool-btn furn-btn" data-furn="bed-single"><span class="furn-icon">🛏️</span><span>Single Bed</span></button>
+            <button class="tool-btn furn-btn" data-furn="bed-double"><span class="furn-icon">🛏️</span><span>Double Bed</span></button>
+            <button class="tool-btn furn-btn" data-furn="wardrobe"><span class="furn-icon">🗄️</span><span>Wardrobe</span></button>
+            <button class="tool-btn furn-btn" data-furn="nightstand"><span class="furn-icon">🔲</span><span>Nightstand</span></button>
+        </div>
+
+        <div class="furn-section-title">Kitchen</div>
+        <div class="tools-grid">
+            <button class="tool-btn furn-btn" data-furn="kitchen-counter"><span class="furn-icon">🟫</span><span>Counter</span></button>
+            <button class="tool-btn furn-btn" data-furn="sink"><span class="furn-icon">🚿</span><span>Sink</span></button>
+            <button class="tool-btn furn-btn" data-furn="stove"><span class="furn-icon">🍳</span><span>Stove</span></button>
+            <button class="tool-btn furn-btn" data-furn="fridge"><span class="furn-icon">🧊</span><span>Fridge</span></button>
+            <button class="tool-btn furn-btn" data-furn="oven"><span class="furn-icon">⬛</span><span>Oven</span></button>
+            <button class="tool-btn furn-btn" data-furn="dishwasher"><span class="furn-icon">📦</span><span>Dishwasher</span></button>
+        </div>
+
+        <div class="furn-section-title">Home Appliances</div>
+        <div class="tools-grid">
+            <button class="tool-btn furn-btn" data-furn="tv"><span class="furn-icon">📺</span><span>TV</span></button>
+            <button class="tool-btn furn-btn" data-furn="tv-unit"><span class="furn-icon">📦</span><span>TV Unit</span></button>
+            <button class="tool-btn furn-btn" data-furn="washing-machine"><span class="furn-icon">🔄</span><span>Wash. Machine</span></button>
+            <button class="tool-btn furn-btn" data-furn="toilet"><span class="furn-icon">🚽</span><span>Toilet</span></button>
+            <button class="tool-btn furn-btn" data-furn="bathtub"><span class="furn-icon">🛁</span><span>Bathtub</span></button>
+            <button class="tool-btn furn-btn" data-furn="shower"><span class="furn-icon">🚿</span><span>Shower</span></button>
+            <button class="tool-btn furn-btn" data-furn="ac"><span class="furn-icon">❄️</span><span>AC Unit</span></button>
+            <button class="tool-btn furn-btn" data-furn="bookshelf"><span class="furn-icon">📚</span><span>Bookshelf</span></button>
+        </div>
+    </div>
+
+    <!-- HOME POPUP -->
+    <div class="popup" id="home-popup">
+        <button class="material-icons close-btn" id="close-home">close</button>
+        <h2><span class="material-icons">home</span> My Projects</h2>
+        <div id="project-list"></div>
+        <button id="newProjectBtn" class="apply-btn"><span class="material-icons">add</span> New Project</button>
+    </div>
+
+    <!-- DELETE DIALOG -->
+    <div id="delete-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:3000;display:none;align-items:center;justify-content:center;">
+        <div style="background:var(--panel);border-radius:14px;padding:28px 24px;text-align:center;min-width:220px;box-shadow:0 4px 24px rgba(0,0,0,0.2);">
+            <p style="font-size:16px;margin-bottom:18px;font-weight:500;">Delete selected element?</p>
+            <button id="confirmDelete" style="background:#ef4444;color:white;border:none;border-radius:8px;padding:9px 22px;font-size:14px;cursor:pointer;margin-right:8px;font-weight:600;">Delete</button>
+            <button id="cancelDelete" style="background:var(--accent);color:var(--text);border:none;border-radius:8px;padding:9px 22px;font-size:14px;cursor:pointer;font-weight:600;">Cancel</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
