@@ -7,13 +7,22 @@
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="FloorDraft">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 </head>
 <body>
     <header>
         <div class="header-content">
             <div class="logo">
                 <span class="material-icons logo-icon">architecture</span>
-                <h1>FloorPlan <span>Pro</span></h1>
+                <h1>FloorDraft <span>Pro</span></h1>
             </div>
             <div class="header-right">
                 <div id="status-bar">
@@ -83,9 +92,9 @@
     <!-- BOTTOM BAR -->
     <div id="bottom-bar">
         <button class="nav-btn active" data-panel="home"><span class="material-icons">home</span><span>Home</span></button>
+        <button class="nav-btn" data-panel="design"><span class="material-icons">palette</span><span>Design</span></button>
         <button class="nav-btn" data-panel="add"><span class="material-icons">add_circle</span><span>Add</span></button>
         <button class="nav-btn" data-panel="furniture"><span class="material-icons">chair</span><span>Furniture</span></button>
-        <button class="nav-btn" data-panel="design"><span class="material-icons">palette</span><span>Design</span></button>
         <button class="nav-btn" data-panel="settings"><span class="material-icons">settings</span><span>Settings</span></button>
     </div>
 
@@ -99,7 +108,7 @@
         </div>
         <div class="setting-item"><label><span class="material-icons">grid_on</span> Show Grid</label><input type="checkbox" id="gridToggle" checked></div>
         <div class="setting-item"><label><span class="material-icons">grid_4x4</span> Snap to Grid</label><input type="checkbox" id="snapToggle" checked></div>
-        <div class="setting-item"><label><span class="material-icons">line_weight</span> Wall Thickness</label><input type="number" id="wallThickness" value="5" min="2" max="30"></div>
+        <div class="setting-item"><label><span class="material-icons">line_weight</span> Wall Thickness</label><input type="number" id="wallThickness" value="8" min="2" max="30"></div>
         <div class="setting-item"><label>Canvas Width</label><input type="number" id="canvasWidth" value="1200"></div>
         <div class="setting-item"><label>Canvas Height</label><input type="number" id="canvasHeight" value="900"></div>
         <button id="applySettings" class="apply-btn">Apply Settings</button>
@@ -130,7 +139,7 @@
     <div class="popup" id="design-dropdown">
         <button class="material-icons close-btn" id="close-design">close</button>
         <h2><span class="material-icons">palette</span> Design</h2>
-        <div class="color-picker"><label>Room Fill</label><input type="color" id="roomColor" value="#f4e5cd"></div>
+        <div class="color-picker"><label>Room Fill</label><input type="color" id="roomColor" value="#f5f0e8"></div>
         <div class="color-picker"><label>Wall Color</label><input type="color" id="wallColor" value="#1a1a2e"></div>
         <div class="color-picker"><label>Stairs Color</label><input type="color" id="stairsColor" value="#8B6914"></div>
         <div class="color-picker"><label>Door Color</label><input type="color" id="doorColor" value="#1a1a2e"></div>
@@ -203,6 +212,49 @@
         </div>
     </div>
 
+    <!-- Install App Banner -->
+    <div id="install-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:#2563eb;color:white;padding:10px 16px;align-items:center;justify-content:space-between;gap:10px;font-family:Inter,sans-serif;font-size:14px;box-shadow:0 2px 12px rgba(0,0,0,0.2);">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <img src="icon-192.png" style="width:36px;height:36px;border-radius:8px;">
+        <div>
+          <div style="font-weight:700;font-size:15px;">FloorDraft Pro</div>
+          <div style="opacity:0.85;font-size:12px;">Install karo — free, offline kaam karta hai</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button onclick="installApp()" style="background:white;color:#2563eb;border:none;border-radius:8px;padding:8px 16px;font-weight:700;cursor:pointer;font-size:13px;">📲 Install</button>
+        <button onclick="document.getElementById('install-banner').style.display='none'" style="background:rgba(255,255,255,0.2);color:white;border:none;border-radius:8px;padding:8px 10px;cursor:pointer;font-size:16px;">✕</button>
+      </div>
+    </div>
+
     <script src="script.js"></script>
+    <script>
+      // Register Service Worker for PWA/offline support
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/FloorPlan-Pro/sw.js')
+            .then(function(reg) { console.log('SW registered'); })
+            .catch(function(err) { console.log('SW error:', err); });
+        });
+      }
+
+      // Show "Install App" banner
+      var deferredPrompt;
+      window.addEventListener('beforeinstallprompt', function(e) {
+        e.preventDefault();
+        deferredPrompt = e;
+        var banner = document.getElementById('install-banner');
+        if (banner) banner.style.display = 'flex';
+      });
+      function installApp() {
+        var banner = document.getElementById('install-banner');
+        if (banner) banner.style.display = 'none';
+        if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt = null; }
+      }
+      window.addEventListener('appinstalled', function() {
+        var banner = document.getElementById('install-banner');
+        if (banner) banner.style.display = 'none';
+      });
+    </script>
 </body>
 </html>
