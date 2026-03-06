@@ -1,8 +1,8 @@
 {
-  "name": "FloorDraft Pro",
-  "short_name": "FloorDraft",
+  "name": "FloorPlan Pro",
+  "short_name": "FloorPlan",
   "description": "2D House Floor Plan Drawing App - Draw rooms, walls, doors, windows and add furniture",
-  "id": "floordraft-pro",
+  "id": "floorPlan-pro",
   "start_url": "/FloorPlan-Pro/index.html",
   "scope": "/FloorPlan-Pro/",
   "display": "standalone",
@@ -63,4 +63,5 @@
     }
   ],
   "categories": ["utilities", "productivity", "lifestyle"]
+
 }
