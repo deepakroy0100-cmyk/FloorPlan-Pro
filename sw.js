@@ -1,4 +1,4 @@
-// FloorDraft Pro — Service Worker
+// FloorPlan Pro — Service Worker
 // Caches all files for offline use
 
 const CACHE = 'floordraft-v1';
@@ -54,4 +54,5 @@ self.addEventListener('fetch', function(e) {
       });
     })
   );
+
 });
